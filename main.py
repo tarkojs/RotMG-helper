@@ -1,10 +1,24 @@
 import pyautogui as pya
 import pytesseract
-from PIL import Image
+import cv2
 from PIL import ImageGrab
 from time import sleep
 import numpy as np
 #myconfig = r'--psm 3 --oem 3'
+
+def analyze_img():
+    x, y = 1254*2, 337*2
+    screenshot = np.array(ImageGrab.grab())
+    gray = cv2.cvtColor(screenshot, cv2.COLOR_BGR2GRAY)
+    color = gray[y, x]
+    print(color)
+    return int(color)
+
+
+def detect_nexus():
+    if analyze_img() < 67:
+        pya.press('r')
+
 
 
 def get_image(left_x, top_y, right_x, bottom_y):
@@ -47,7 +61,9 @@ def necromancer_heal():
 
 def main():
     while True:
-        get_image(1276, 316, 1387, 371)
+        analyze_img()
+        detect_nexus()
+        #get_image(1276, 316, 1387, 371)
 
 
 if __name__ == '__main__':
