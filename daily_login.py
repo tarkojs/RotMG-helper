@@ -5,8 +5,8 @@ import time
 from PIL import ImageGrab
 
 """
-Logs in automatically using the launcher and acquires the daily login item
-You have to specify your OS below
+Logs in automatically using the launcher
+Acquires the daily login item
 """
 
 if sys.platform.startswith('darwin'): import subprocess
@@ -19,8 +19,8 @@ class Daily_Login():
     def __init__(self):
         self.thresh = 0.8
 
-    
-    def select_window(self, app_name):
+
+    def select_window(self, app_name: str):
         try:
             if sys.platform.startswith('darwin'):
                 script = f'tell application "{app_name}" to activate'
@@ -49,7 +49,7 @@ class Daily_Login():
     
     def move_and_click(self, check_for: str, check_against: str):
         re_use = self.if_on_screen(check_for, check_against)
-        if re_use[0] > 0.8: 
+        if re_use[0] > self.thresh: 
             pya.moveTo( re_use[1][0], re_use[1][1] )
             print(f'moving to -> { re_use[1][0], re_use[1][1] / 2 }\nclicking..')
             pya.click()
