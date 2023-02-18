@@ -1,6 +1,7 @@
 import pyautogui as pya
 import cv2
 import sys
+import time
 from PIL import ImageGrab
 
 """
@@ -53,7 +54,19 @@ class Daily_Login():
             print(f'moving to -> { re_use[1][0], re_use[1][1] / 2 }\nclicking..')
             pya.click()
 
+    
+    def delay(self, seconds: int):
+        print(f'waiting for {seconds} seconds..')
+        return time.sleep(seconds)
+
 
 login = Daily_Login()
 login.select_window('RotMG Exalt Launcher')
 login.move_and_click('play_button_live', 'play_button')
+while True:
+    print(f'looking for "Go & Claim" prompt.')
+    login.delay(5)
+    if login.if_on_screen('go_and_claim_live', 'go_and_claim')[0]:
+        print(f'"Go & Claim prompt found..')
+        login.move_and_click('go_and_claim_live', 'go_and_claim')
+        break
