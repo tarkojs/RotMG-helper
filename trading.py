@@ -39,7 +39,19 @@ class Trader:
         res = cv2.matchTemplate(source, template, cv2.TM_CCOEFF_NORMED)
         locations = np.where(res >= self.thresh)
         matches = list(zip(locations[1], locations[0]))
-        print(matches)
+        return matches
+
+    def filter_matches(self, check_for: str, check_against: str):
+        matches = self.get_match_coords(check_for, check_against)
+        filtered = []
+        for i, match in enumerate(matches):
+            if i == 0: filtered.append(match)
+            if i > 0:
+                if abs(match[i][0] - match[i-1][0]) > 10: filtered.append(match) # check that the matches aren't matching the same spot
+        return filtered
+    
+    def count_matches(self, check_for: str, check_against: str):
+        return len(self.filter_matches(check_for, check_against))
 
     def if_on_screen(self, check_for: str, check_against: str):
         source = self.source_preprocess(check_for)
