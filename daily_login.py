@@ -20,16 +20,34 @@ class Daily_Login():
         self.thresh = 0.8
 
 
-    def select_window(self, app_name: str):
+    def select_window(self, app_name: str, launch_command: str = None):
         """
-        Selects a window with the given name if found on the screen.
-        :param app_name: Name of the application window to select.
+        Finds and activates the specified window with the given `app_name`.
+    
+        If the window is not found, it will attempt to launch it using the optional `launch_command`
+        parameter (if provided).
+        
+        Parameters:
+        -----------
+        app_name: str
+            The name of the window to find and activate.
+            
+        launch_command: str, optional
+            A command-line command to launch the application if it is not found.
+            This parameter is required for macOS and optional for Windows.
         """
         try:
             if sys.platform.startswith('darwin'):
                 script = f'tell application "{app_name}" to activate'
                 subprocess.call(['osascript', '-e', script])
+                rotmg_window = app_name
+                self.delay(5, 'assuring the app is launched')
             if sys.platform.startswith('win'):
+                rotmg_window = win32gui.FindWindow(None, app_name)
+                win32gui.SetForegroundWindow(rotmg_window)
+            elif rotmg_window == 0 and launch_command is not None:
+                subprocess.Popen(launch_command, shell = True)
+                self.delay(5, 'assuring the app is launched')
                 rotmg_window = win32gui.FindWindow(None, app_name)
                 win32gui.SetForegroundWindow(rotmg_window)
             print(f'successfully found the RotMG window and set it as active.')
@@ -44,11 +62,11 @@ class Daily_Login():
         :return: Confidence of the template match and location of the template on the screen.
         """
         check = ImageGrab.grab()
-        check.save(f'{source}.png')
-        source_to_arr = cv2.imread(f'{source}.png')
+        check.save(f'source_imgs/{source}.png')
+        source_to_arr = cv2.imread(f'source_imgs/{source}.png')
         preprocess_source = cv2.cvtColor(source_to_arr, cv2.COLOR_BGR2RGB)
 
-        template = cv2.imread(f'pics_to_source/{template}.png')
+        template = cv2.imread(f'template_imgs/{template}.png')
         preprocess_template= cv2.cvtColor(template, cv2.COLOR_BGR2RGB)
 
         result = cv2.matchTemplate(preprocess_source, preprocess_template, cv2.TM_CCOEFF_NORMED)
@@ -70,17 +88,17 @@ class Daily_Login():
             pya.click()
 
     
-    def delay(self, seconds: int):
-        print(f'waiting for {seconds} seconds..')
+    def delay(self, seconds: int, reason: str):
+        print(f'waiting for {seconds} seconds -> {reason}')
         return time.sleep(seconds)
 
 
 login = Daily_Login()
-login.select_window('RotMG Exalt Launcher')
+login.select_window('RotMG Exalt Launcher', 'RotMG Exalt Launcher')
 login.move_and_click('play_button_live', 'play_button')
 while True:
     print(f'looking for "Go & Claim" prompt.')
-    login.delay(5)
+    login.delay(5, 'waiting for the prompt')
     if login.if_on_screen('go_and_claim_live', 'go_and_claim')[0]:
         print(f'Go & Claim prompt found..')
         login.move_and_click('go_and_claim_live', 'go_and_claim')
