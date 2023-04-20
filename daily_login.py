@@ -21,6 +21,10 @@ class Daily_Login():
 
 
     def select_window(self, app_name: str):
+        """
+        Selects a window with the given name if found on the screen.
+        :param app_name: Name of the application window to select.
+        """
         try:
             if sys.platform.startswith('darwin'):
                 script = f'tell application "{app_name}" to activate'
@@ -32,23 +36,34 @@ class Daily_Login():
         except Exception as e: print(f'failed to select the RotMG window and set it as active: {str(e)}')
         
 
-    def if_on_screen(self, check_for: str, check_against: str):
+    def if_on_screen(self, source: str, template: str):
+        """
+        Check if the given template is present on the screen in the given source.
+        :param source: Name of the screen source.
+        :param template: Name of the template to look for.
+        :return: Confidence of the template match and location of the template on the screen.
+        """
         check = ImageGrab.grab()
-        check.save(f'{check_for}.png')
-        check_for_to_arr = cv2.imread(f'{check_for}.png')
-        preprocess_check_for = cv2.cvtColor(check_for_to_arr, cv2.COLOR_BGR2RGB)
+        check.save(f'{source}.png')
+        source_to_arr = cv2.imread(f'{source}.png')
+        preprocess_source = cv2.cvtColor(source_to_arr, cv2.COLOR_BGR2RGB)
 
-        check_against = cv2.imread(f'pics_to_check_for/{check_against}.png')
-        preprocess_check_against= cv2.cvtColor(check_against, cv2.COLOR_BGR2RGB)
+        template = cv2.imread(f'pics_to_source/{template}.png')
+        preprocess_template= cv2.cvtColor(template, cv2.COLOR_BGR2RGB)
 
-        result = cv2.matchTemplate(preprocess_check_for, preprocess_check_against, cv2.TM_CCOEFF_NORMED)
+        result = cv2.matchTemplate(preprocess_source, preprocess_template, cv2.TM_CCOEFF_NORMED)
         min_val, max_val, min_loc, max_loc = cv2.minMaxLoc(result)
-        if max_val: print(f'{check_for} processed successfully..\nconfidence -> {max_val}')
+        if max_val: print(f'{source} processed successfully..\nconfidence -> {max_val}')
         return [ max_val , (int(max_loc[0]) / 2 , int(max_loc[1]) / 2) ]
 
     
-    def move_and_click(self, check_for: str, check_against: str):
-        re_use = self.if_on_screen(check_for, check_against)
+    def move_and_click(self, source: str, template: str):
+        """
+        Moves the mouse to the location of the template on the screen and clicks it if the confidence value is above the threshold.
+        :param source: Name of the screen source.
+        :param template: Name of the template to look for.
+        """
+        re_use = self.if_on_screen(source, template)
         if re_use[0] > self.thresh: 
             pya.moveTo( re_use[1][0], re_use[1][1] )
             print(f'moving to -> { re_use[1][0], re_use[1][1] / 2 }\nclicking..')
@@ -67,6 +82,6 @@ while True:
     print(f'looking for "Go & Claim" prompt.')
     login.delay(5)
     if login.if_on_screen('go_and_claim_live', 'go_and_claim')[0]:
-        print(f'"Go & Claim prompt found..')
+        print(f'Go & Claim prompt found..')
         login.move_and_click('go_and_claim_live', 'go_and_claim')
         break
